@@ -1,13 +1,15 @@
 import os
 import re
+from config import Config
 
 
 class ShellCore:
     """Ядро оболочки - содержит всю логику командной строки"""
 
     # Конструктор
-    def __init__(self, vfs):
-        self.vfs = vfs              # сохраняет ссылку на vfs для доступа к файловой системе
+    def __init__(self, vfs, config):
+        self.vfs = vfs              # сохраняет ссылку на vfs для доступа к файловой 
+        self.config = config
         self.commands = {           # список команд
             'ls': self.cmd_ls,
             'cd': self.cmd_cd,

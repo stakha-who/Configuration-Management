@@ -92,6 +92,7 @@ class ShellGUI:
 Доступные команды: ls, cd, exit
 Для выхода введите 'exit'
 
+Введенные параметры запуска: {self.shell.config.get_startup_parameters()}
 """
         self.print_output(welcome_msg)
 
