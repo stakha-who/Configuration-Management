@@ -304,3 +304,38 @@ class VFS:
                 target_node = None
 
         return target_node
+    
+    def create_directory(self, path):
+        """Создает директорию"""
+
+        if not path:
+            return False, "Неверное имя директории"
+
+        # Разделяем путь на родительскую директорию и имя новой директории
+        if "/" in path:
+            # Путь содержит поддиректории
+            if path.endswith("/"):
+                return False, "Неверное имя директории"
+
+            parts = path.split("/")
+            dirname = parts[-1]
+            parent_path = "/".join(parts[:-1]) or "/"
+        else:
+            # Просто имя в текущей директории
+            dirname = path
+            parent_path = "."
+
+        # Ищем родительскую директорию
+        parent_dir = self._resolve_path(parent_path)
+        if not parent_dir or parent_dir.type != "dir":
+            return False, "Родительская директория не найдена"
+
+        # Проверяем, существует ли уже узел с таким именем
+        if parent_dir.children and dirname in parent_dir.children:
+            existing_node = parent_dir.children[dirname]
+            return (True, "Директория уже существует") if existing_node.type == "dir" else (
+                False, f"{dirname}: файл с таким именем уже существует")
+        
+        # Создаем директорию
+        self._add_child(parent_dir, dirname, "dir")
+        return True, "Директория создана"

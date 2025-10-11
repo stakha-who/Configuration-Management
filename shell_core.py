@@ -18,7 +18,8 @@ class ShellCore:
             'exit': self.cmd_exit,
             'find': self.cmd_find,
             'rev': self.cmd_rev,
-            'who': self.cmd_who
+            'who': self.cmd_who,
+            'mkdir': self.cmd_mkdir
         }
 
     def _expand_env_vars(self, text):
@@ -181,3 +182,12 @@ class ShellCore:
 
         now = datetime.datetime.now()
         return now.strftime("%Y-%m-%d %H:%M:%S")
+    
+    def cmd_mkdir(self, args):
+        """Команда mkdir - создание директорий"""
+
+        if not args:
+            return "mkdir: отсутствует аргумент - имя директории"
+
+        success, message = self.vfs.create_directory(args[0])
+        return message if success else f"mkdir: {message}"
