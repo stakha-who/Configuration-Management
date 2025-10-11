@@ -11,9 +11,21 @@ def main():
     config = Config()
     config.parse_arguments()
 
-    # Инициализируем компоненты
-    root = tk.Tk()
+    # Инициализируем vfs
     vfs = VFS()
+
+    # Загружаем VFS из CSV если указан путь
+    if config.vfs_path:
+        try:
+            vfs.load_from_csv(config.vfs_path)
+            print(f"VFS загружена из: {config.vfs_path}")
+        except Exception as e:
+            print(f"Ошибка загрузки VFS: {str(e)}")
+            # Продолжаем с VFS по умолчанию
+    
+
+    # Инициализируем компоненты системы
+    root = tk.Tk()
     shell_core = ShellCore(vfs, config)
     gui = ShellGUI(root, shell_core, vfs)
 

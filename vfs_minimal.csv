@@ -1,0 +1,4 @@
+path,type,name,content
+/,dir,home,
+/home,dir,user,
+/home/user,file,readme.txt,Минимальная VFS

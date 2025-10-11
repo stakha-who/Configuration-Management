@@ -1,0 +1,20 @@
+path,type,name,content
+/,dir,home,
+/home,dir,user,
+/home/user,dir,documents,
+/home/user/documents,file,project1.txt,Проект 1\nПервая строка\nВторая строка\nТретья строка\nЗавершение проекта 1
+/home/user/documents,file,project2.txt,Начало проекта 2\nРазработка\nТестирование\nВнедрение\nКонец проекта 2
+/home/user/documents,file,multi_line.txt,Строка 1\nСтрока 2\nСтрока 3\nСтрока 4\nПоследняя строка
+/home/user,dir,downloads,
+/home/user/downloads,file,file1.zip,Архив файла 1
+/home/user/downloads,file,document.pdf,PDF документ
+/home/user,file,.bashrc,# Конфигурация bash\nexport PATH=$PATH:/usr/local/bin\nalias ll='ls -l'\n# Конец файла
+/home,dir,admin,
+/home/admin,file,notes.txt,Заметки администратора\nВажная информация\nНастройки системы
+/,dir,etc,
+/etc,dir,config,
+/etc/config,file,app.conf,config_value=123\ndebug_mode=true\nmax_connections=100
+/etc,file,hosts,127.0.0.1 localhost\n::1 localhost ip6-localhost
+/,dir,var,
+/var,dir,log,
+/var/log,file,system.log,2024-01-01 INFO: System started\n2024-01-01 WARN: Low disk space\n2024-01-01 INFO: Backup completed

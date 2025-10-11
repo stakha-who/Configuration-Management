@@ -11,6 +11,7 @@ class ShellCore:
         self.vfs = vfs              # сохраняет ссылку на vfs для доступа к файловой 
         self.config = config
         self.commands = {           # список команд
+            'echo': self.cmd_echo,
             'ls': self.cmd_ls,
             'cd': self.cmd_cd,
             'exit': self.cmd_exit
@@ -64,17 +65,40 @@ class ShellCore:
     """Область разработки команд"""
 
     def cmd_ls(self, args):
-        """Заглушка для команды ls"""
+        """Команда ls - список файлов и директорий"""
 
-        return f"ls: аргументы {args}. Команда в разработке"
+        path = args[0] if args else None
+
+        success, result = self.vfs.list_directory(path)
+        if success:
+            return result
+        else:
+            return f"ls: {result}"
 
     def cmd_cd(self, args):
-        """Заглушка для команды cd"""
+        """Команда cd - смена директории"""
 
-        target = args[0] if args else "~"
-        return f"cd: переход в {target}. Команда в разработке"
+        target = args[0] if args else "/"
+
+        success, result = self.vfs.change_directory(target)
+        if success:
+            return result
+        else:
+            return f"cd: {result}"
 
     def cmd_exit(self, args):
         """Команда exit - завершает программу"""
 
         return "EXIT"
+    
+    def cmd_echo(self, args):
+        """Команда echo - вывод текста в консоль"""
+
+        if not args:
+            return ""
+
+        text = " ".join(args)
+
+        # Раскрываем переменные окружения
+        expanded_text = self._expand_env_vars(text)
+        return expanded_text

@@ -1,0 +1,5 @@
+path,type,name,content,encoding
+/,dir,home,
+/home,dir,user,
+/home/user,file,text_file.txt,VGhpcyBpcyBhIHRlc3QgZmlsZSB3aXRoIGJhc2U2NCBlbmNvZGVkIGNvbnRlbnQ=,base64
+/home/user,file,normal_file.txt,Это обычный файл без кодирования,
