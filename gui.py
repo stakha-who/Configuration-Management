@@ -89,7 +89,7 @@ class ShellGUI:
 
         welcome_msg = f"""
 Добро пожаловать в эмулятор командной строки {self.vfs.name}!
-Доступные команды: echo, ls, cd, exit
+Доступные команды: echo, ls, cd, find, rev, who, exit
 Для выхода введите 'exit'
 
 Введенные параметры запуска: {self.shell.config.get_startup_parameters()}

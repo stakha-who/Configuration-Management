@@ -1,5 +1,6 @@
 import os
 import re
+import datetime
 from config import Config
 
 
@@ -14,7 +15,10 @@ class ShellCore:
             'echo': self.cmd_echo,
             'ls': self.cmd_ls,
             'cd': self.cmd_cd,
-            'exit': self.cmd_exit
+            'exit': self.cmd_exit,
+            'find': self.cmd_find,
+            'rev': self.cmd_rev,
+            'who': self.cmd_who
         }
 
     def _expand_env_vars(self, text):
@@ -102,3 +106,78 @@ class ShellCore:
         # Раскрываем переменные окружения
         expanded_text = self._expand_env_vars(text)
         return expanded_text
+    
+    def cmd_find(self, args):
+        """Команда find - поиск файлов и директорий по имени"""
+
+        if not args:
+            return "find: отсутствуют аргументы. Использование: find <путь> -name <шаблон>"
+
+        # Базовая реализация: find <путь> -name <шаблон>
+        if len(args) < 3 or args[1] != "-name":
+            return "find: поддерживается только форма: find <путь> -name <шаблон>"
+
+        search_path = args[0]
+        pattern = args[2]
+
+        results = self.vfs.find_files(search_path, pattern)
+        if results is None:
+            return f"find: {search_path}: директория не найдена"
+
+        if not results:
+            return ""  # ничего не найдено
+
+        return '\n'.join(results)
+    
+    def cmd_rev(self, args):
+        """Команда rev - переворачивает строки или содержимое файла"""
+
+        if not args:
+            return "rev: отсутствуют аргументы. Использование: rev <файл> или rev <текст>"
+
+        # Если первый аргумент существует как файл в VFS, читаем его содержимое
+        filename = args[0]
+        file_node = self.vfs.get_file_content(filename)
+
+        if file_node is not None and file_node.type == "file":
+            # Работа с файлом
+            content = file_node.content or ""
+            if not content:
+                return ""  # пустой файл
+
+            # Переворачиваем каждую строку отдельно
+            lines = content.split('\n')
+            reversed_lines = [line[::-1] for line in lines]  # переворачиваем каждую строку
+            return '\n'.join(reversed_lines)
+        else:
+            # Работа с текстом из аргументов
+            text = " ".join(args)
+            # Переворачиваем весь текст
+            return text[::-1]
+    
+    def cmd_who(self, args):
+        """Команда who - отображает информацию о текущих пользователях"""
+        
+        # В нашей виртуальной системе имитируем информацию о пользователях
+        # В реальной системе эта команда показывает кто залогинен в системе
+        
+        current_user = "user"
+        current_path = self.vfs.get_current_path()
+        
+        # Создаем имитацию вывода команды who
+        who_info = f"""
+    Пользователь    TTY         Время входа
+    {current_user}          pts/0       {self._get_current_time()}
+    {current_user}          pts/1       {self._get_current_time()}
+
+    Всего пользователей в системе: 2
+    Текущий пользователь: {current_user}
+    Текущая директория: {current_path}
+    """
+        return who_info.strip()
+    
+    def _get_current_time(self):
+        """Вспомогательная функция для получения текущего времени (имитация)"""
+
+        now = datetime.datetime.now()
+        return now.strftime("%Y-%m-%d %H:%M:%S")
