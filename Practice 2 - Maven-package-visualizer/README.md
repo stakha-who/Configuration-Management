@@ -72,7 +72,7 @@ python src/cli.py -p com.example:lib -r /path/to/repo -v 1.0.0 -o graph.svg -d 3
 
 **Тест 1: запуск с корректными параметрами**
 ```bash
-python cli.py --package org.apache.commons:commons-lang3 --repo https://repo.maven.apache.org/maven2/ -v 3.0
+python cli.py --package org.apache.commons:commons-lang3 --repo https://repo.maven.apache.org/maven2/ -v 3.0 -g -o lang3_deps -a 
 ```
 
 **Вывод**
@@ -83,10 +83,10 @@ package_name: org.apache.commons:commons-lang3
 repo_url: https://repo.maven.apache.org/maven2/
 test_mode: False
 version: 3.0
-generate_graph: False
-output_file: dependency_graph.png
+generate_graph: True
+output_file: lang3_deps.png
 max_depth: unlimited
-ascii_tree: False
+ascii_tree: True
 filter_substring: none
 load_order_mode: False
 ------------------------------
@@ -101,7 +101,17 @@ org.easymock:easymock:2.5.2:
   - junit:junit:4.7
 ------------------------------
 
-Этап 4 завершён.
+ASCII-дерево зависимостей:
+--------------------------------------------------
+└─ org.apache.commons:commons-lang3:3.0
+    ├─ junit:junit:4.7
+    └─ org.easymock:easymock:2.5.2
+        └─ junit:junit:4.7 (повтор)
+--------------------------------------------------
+
+Граф сохранён в lang3_deps.png
+
+Этап 5 завершён.
 ```
 \
 **Тест 2: обработка ошибок**
@@ -116,7 +126,7 @@ python cli.py --package "" --repo https://repo.maven.apache.org/maven2/
 \
 **Тест 3: тестовый режим**
 ```bash
-python cli.py -p A -r test.txt -t
+python cli.py -p A -r test.txt -t -a -g -o test -f G -d 2
 ```
 
 **Вывод**
@@ -127,11 +137,11 @@ package_name: A
 repo_url: test.txt
 test_mode: True
 version: latest
-generate_graph: False
-output_file: dependency_graph.png
-max_depth: unlimited
-ascii_tree: False
-filter_substring: none
+generate_graph: True
+output_file: test.png
+max_depth: 2
+ascii_tree: True
+filter_substring: G
 load_order_mode: False
 ------------------------------
 
@@ -145,20 +155,19 @@ B:B:1.0.0:
   - E:E:1.0.0
 C:C:1.0.0:
   - F:F:1.0.0
-  - G:G:1.0.0
-D:D:1.0.0:
-  - H:H:1.0.0
-E:E:1.0.0:
-F:F:1.0.0:
-  - B:B:1.0.0
-  - G:G:1.0.0
-G:G:1.0.0:
-H:H:1.0.0:
-  - A:A:1.0.0
-A:A:1.0.0:
-  - B:B:1.0.0
-  - C:C:1.0.0
 ------------------------------
 
-Этап 4 завершён.
+ASCII-дерево зависимостей:
+--------------------------------------------------
+└─ A:A:latest
+    ├─ B:B:1.0.0
+    │   ├─ D:D:1.0.0
+    │   └─ E:E:1.0.0
+    └─ C:C:1.0.0
+        └─ F:F:1.0.0
+--------------------------------------------------
+
+Граф сохранён в test.png
+
+Этап 5 завершён.
 ```

@@ -1,7 +1,5 @@
 import sys
 from config import parse_arguments, print_config
-from maven_repository import MavenRepository
-from test_repository import TestRepository
 from dependency_graph import DependencyGraph
 
 
@@ -19,7 +17,7 @@ def main():
             config.filter_substring
         )
 
-        # Вывод зависимостей
+        # Вывод зависимостей (аналогично Этапу 3)
         print("\nПолученные зависимости:")
         print("------------------------------")
         for node, deps in graph.graph.items():
@@ -28,7 +26,15 @@ def main():
                 print(f"  - {dep}")
         print("------------------------------")
 
-        # Вывод порядка загрузки
+        # ASCII-дерево
+        if config.ascii_tree:
+            graph.print_ascii_tree(config.package_name, config.version)
+
+        # Визуализация в PNG
+        if config.generate_graph:
+            graph.render_png(config.output_file)
+
+        # Порядок загрузки
         if config.load_order_mode:
             print("\nПорядок загрузки зависимостей (уровневый обход):")
             print("------------------------------")
@@ -40,7 +46,7 @@ def main():
                 print(f"Не удалось определить порядок загрузки: {e}")
             print("------------------------------")
 
-        print("\nЭтап 4 завершён.\n")
+        print("\nЭтап 5 завершён.\n")
 
     except Exception as e:
         print(f"Ошибка: {e}")

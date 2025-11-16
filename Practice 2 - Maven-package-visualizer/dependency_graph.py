@@ -4,6 +4,7 @@ import sys
 import os
 from maven_repository import MavenRepository
 from test_repository import TestRepository
+import graphviz
 
 
 def make_node_id(group: str, artifact: str, version: Optional[str]) -> str:
@@ -125,3 +126,59 @@ class DependencyGraph:
                     queue.append(child)
 
         return load_order
+    
+    def to_dot(self) -> str:
+        """Сформировать текст Graphviz (DOT) для всего графа"""
+        
+        lines = ["digraph G {"]
+        for parent, children in self.graph.items():
+            parent_label = f'"{parent}"'
+            for child in children:
+                child_label = f'"{child}"'
+                lines.append(f"    {parent_label} -> {child_label};")
+        lines.append("}")
+        return "\n".join(lines)
+
+    def render_png(self, output_file: str) -> None:
+        """Сохранить граф в PNG через Graphviz"""
+        
+        dot_str = self.to_dot()
+        g = graphviz.Source(dot_str)
+        g.format = 'png'
+        g.render(filename=output_file, cleanup=True)
+        print(f"\nГраф сохранён в {output_file}.png")
+
+    def print_ascii_tree(self, root_package: str, version: Optional[str] = None) -> None:
+        """Вывод графа в виде ASCII-дерева (DFS-подобный обход с отступами)"""
+        
+        root_group, root_artifact = split_package_name(root_package)
+        root_id = make_node_id(root_group, root_artifact, version)
+
+        if root_id not in self.graph:
+            candidates = [n for n in self.graph if n.startswith(f"{root_group}:{root_artifact}:")]
+            if not candidates:
+                print("ASCII-дерево: корневой узел не найден.")
+                return
+            root_id = candidates[0]
+
+        visited = set()
+
+        def _print_node(node: str, prefix: str = "", is_last: bool = True):
+            if node in visited:
+                marker = "└─ " if is_last else "├─ "
+                print(f"{prefix}{marker}{node} (повтор)")
+                return
+            visited.add(node)
+            marker = "└─ " if is_last else "├─ "
+            print(f"{prefix}{marker}{node}")
+
+            children = self.graph.get(node, [])
+            for i, child in enumerate(children):
+                is_child_last = (i == len(children) - 1)
+                extension = "    " if is_last else "│   "
+                _print_node(child, prefix + extension, is_child_last)
+
+        print("\nASCII-дерево зависимостей:")
+        print("-" * 50)
+        _print_node(root_id)
+        print("-" * 50)
