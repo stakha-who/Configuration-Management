@@ -16,6 +16,7 @@ class Config:
         self.ascii_tree: bool = False                   # вывод в формате ASCII-дерева
         self.filter_substring: Optional[str] = None     # подстрока для фильтрации пакетов
         self.generate_graph: bool = False               # визуализация графа
+        self.load_order_mode: bool = False              # порядок загрузки
     
     def validate(self) -> None:
         """Валидация параметров конфигурации"""
@@ -69,7 +70,8 @@ class Config:
             'output_file': f"{self.output_file}.png",
             'max_depth': self.max_depth if self.max_depth else 'unlimited',
             'ascii_tree': self.ascii_tree,
-            'filter_substring': self.filter_substring if self.filter_substring else 'none'
+            'filter_substring': self.filter_substring if self.filter_substring else 'none',
+            "load_order_mode": self.load_order_mode
         }
     
     def is_test_mode(self) -> bool:
@@ -147,6 +149,12 @@ def parse_arguments() -> Config:
         action='store_true',
         help='Сгенерировать граф зависимостей в формате PNG'
     )
+    
+    parser.add_argument(
+        "--load-order", "-l",
+        action="store_true",
+        help="Вывести порядок загрузки зависимостей (уровневый обход)"
+    )
 
     
     try:
@@ -162,6 +170,7 @@ def parse_arguments() -> Config:
         config.ascii_tree = args.ascii_tree
         config.filter_substring = args.filter
         config.generate_graph = args.graph
+        config.load_order_mode = args.load_order
         
         # Валидация конфигурации
         config.validate()

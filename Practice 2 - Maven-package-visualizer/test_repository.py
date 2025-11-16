@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Tuple, Optional
 
 
 class TestRepository:
@@ -21,10 +21,11 @@ class TestRepository:
                     pkg, dep_list = line.split('->', 1)
                     pkg = pkg.strip()
                     dep_names = [d.strip() for d in dep_list.split(',') if d.strip()]
-                    deps[pkg] = [f"{d}:{d}:1.0.0" for d in dep_names]  # формат: group:artifact:version
+                    # Сохраняем как список кортежей (group, artifact, version)
+                    deps[pkg] = [(d, d, "1.0.0") for d in dep_names]
         return deps
 
-    def get_dependencies(self, package_name: str, version: str = "1.0.0") -> List[str]:
+    def get_dependencies(self, package_name: str, version: str = "1.0.0") -> List[Tuple[str, str, str]]:
         # Поддержка как "A", так и "A:A"
         if package_name in self.dependencies:
             return self.dependencies[package_name]

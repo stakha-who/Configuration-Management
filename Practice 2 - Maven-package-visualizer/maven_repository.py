@@ -11,9 +11,8 @@ class MavenRepository:
     def __init__(self, repo_url: str):
         self.repo_url = repo_url.rstrip('/')
 
-    def get_dependencies(self, package_name: str, version: str) -> List[str]:
-        """Возвращает список зависимостей в формате ['group:artifact:version', ...]"""
-        
+    def get_dependencies(self, package_name: str, version: str) -> List[Tuple[str, str, str]]:
+        """Возвращает список зависимостей в формате [(group, artifact, version), ...]"""
         group, artifact = self._parse_package_name(package_name)
         pom_content = self._fetch_pom(group, artifact, version)
         return self._extract_dependencies(pom_content)
@@ -37,7 +36,7 @@ class MavenRepository:
         except urllib.error.URLError as e:
             raise ConnectionError(f"Ошибка сети: {e.reason}")
 
-    def _extract_dependencies(self, pom_content: str) -> List[str]:
+    def _extract_dependencies(self, pom_content: str) -> List[Tuple[str, str, str]]:
         try:
             root = ET.fromstring(pom_content)
             ns_match = re.match(r'\{.*\}', root.tag)
@@ -56,7 +55,7 @@ class MavenRepository:
                         group = gid.text.strip()
                         artifact = aid.text.strip()
                         version = ver.text.strip() if ver is not None and ver.text else "latest"
-                        deps.append(f"{group}:{artifact}:{version}")
+                        deps.append((group, artifact, version))
             return deps
         except ET.ParseError:
             # Если не получилось, пробуем регулярками
@@ -70,5 +69,5 @@ class MavenRepository:
                     group = gid.group(1).strip()
                     artifact = aid.group(1).strip()
                     version = ver.group(1).strip() if ver else "latest"
-                    deps.append(f"{group}:{artifact}:{version}")
+                    deps.append((group, artifact, version))
             return deps

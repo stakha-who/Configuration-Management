@@ -2,7 +2,7 @@ import sys
 from config import parse_arguments, print_config
 from maven_repository import MavenRepository
 from test_repository import TestRepository
-from dependency_graph import build_dependency_graph_recursive_bfs
+from dependency_graph import DependencyGraph
 
 
 def main():
@@ -10,31 +10,37 @@ def main():
         config = parse_arguments()
         print_config(config)
 
-        if config.test_mode:
-            repo = TestRepository(config.repo_url)
-            print("\nРабота в режиме test-mode")
-        else:
-            repo = MavenRepository(config.repo_url)
-            print("\nЗагрузка pom-файлов из Maven Central...")
-
-        # Строим граф зависимостей рекурсивным BFS
-        graph = build_dependency_graph_recursive_bfs(
-            repo=repo,
-            root_package=config.package_name,
-            version=config.version if config.version else "latest",
-            max_depth=config.max_depth,
-            filter_substring=config.filter_substring
+        # Построение графа
+        graph = DependencyGraph(config.repo_url, config.test_mode)
+        graph.build_graph(
+            config.package_name,
+            config.version if config.version else "latest",
+            config.max_depth,
+            config.filter_substring
         )
 
+        # Вывод зависимостей
         print("\nПолученные зависимости:")
         print("------------------------------")
-        for node, deps in graph.items():
+        for node, deps in graph.graph.items():
             print(f"{node}:")
             for dep in deps:
                 print(f"  - {dep}")
         print("------------------------------")
 
-        print("\nЭтап 3 завершён.\n")
+        # Вывод порядка загрузки
+        if config.load_order_mode:
+            print("\nПорядок загрузки зависимостей (уровневый обход):")
+            print("------------------------------")
+            try:
+                order = graph.get_load_order(config.package_name, config.version)
+                for i, pkg in enumerate(order, 1):
+                    print(f"{i:2d}. {pkg}")
+            except Exception as e:
+                print(f"Не удалось определить порядок загрузки: {e}")
+            print("------------------------------")
+
+        print("\nЭтап 4 завершён.\n")
 
     except Exception as e:
         print(f"Ошибка: {e}")
