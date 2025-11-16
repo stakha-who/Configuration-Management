@@ -1,113 +1,190 @@
 import argparse
+import sys
 from typing import Optional, Dict, Any
 
 
 class Config:
     """Класс для хранения и валидации конфигурации приложения"""
-
+    
     def __init__(self):
-        self.package_name: Optional[str] = None
-        self.repo_url: Optional[str] = None
-        self.test_mode: bool = False
-        self.version: Optional[str] = None
-        self.output_file: str = "dependency_graph.png"
-        self.max_depth: Optional[int] = None
-        self.ascii_mode: bool = False
-        self.filter_substring: Optional[str] = None
-
+        self.package_name: Optional[str] = None         # имя пакета
+        self.repo_url: Optional[str] = None             # url
+        self.test_mode: bool = False                    # флаг тестового режима
+        self.version: Optional[str] = None              # версия
+        self.output_file: str = "dependency_graph"      # итоговый файл с графом зависимостей
+        self.max_depth: Optional[int] = None            # максимальная глубина зависимостей
+        self.ascii_tree: bool = False                   # вывод в формате ASCII-дерева
+        self.filter_substring: Optional[str] = None     # подстрока для фильтрации пакетов
+        self.generate_graph: bool = False               # визуализация графа
+    
     def validate(self) -> None:
         """Валидация параметров конфигурации"""
-
+        
         if not self.package_name:
             raise ValueError("Имя пакета обязательно для указания")
-
+        
         if not self.repo_url:
             raise ValueError("URL репозитория или путь к файлу обязателен")
-
+        
         if self.version and not self._is_valid_version(self.version):
             raise ValueError(f"Некорректный формат версии: {self.version}")
-
+        
         if self.max_depth is not None:
             if not isinstance(self.max_depth, int) or self.max_depth < 1:
                 raise ValueError("Максимальная глубина должна быть положительным целым числом")
-
+        
         if self.output_file and not self._is_valid_filename(self.output_file):
             raise ValueError(f"Некорректное имя файла: {self.output_file}")
-
+    
     def _is_valid_version(self, version: str) -> bool:
+        """Проверка корректности формата версии"""
+        
+        if not version or not isinstance(version, str):
+            return False
+        
         import re
-        pattern = r"^[a-zA-Z0-9._-]+$"
+        pattern = r'^[a-zA-Z0-9._-]+$'  # допустимы цифры, точки, дефисы для snapshot версий
+        
         return bool(re.match(pattern, version))
-
+    
     def _is_valid_filename(self, filename: str) -> bool:
-        forbidden = ['<', '>', ':', '"', '|', '?', '*', '\\', '/']
-        return filename and isinstance(filename, str) and not any(c in filename for c in forbidden)
-
+        """Проверка корректности имени файла"""
+        
+        if not filename or not isinstance(filename, str):
+            return False
+        
+        # Запрещенные символы в именах файлов
+        forbidden_chars = ['<', '>', ':', '"', '|', '?', '*', '\\', '/']
+        return not any(char in filename for char in forbidden_chars)
+    
     def to_dict(self) -> Dict[str, Any]:
-        """Возвращает конфигурацию для вывода"""
-
+        """Получение конфигурации в виде словаря для вывода"""
+        
         return {
-            "package_name": self.package_name,
-            "repo_url": self.repo_url,
-            "test_mode": self.test_mode,
-            "version": self.version if self.version else "latest",
-            "output_file": self.output_file,
-            "ascii_mode": self.ascii_mode,
-            "max_depth": self.max_depth if self.max_depth else "unlimited",
-            "filter_substring": self.filter_substring if self.filter_substring else "none",
+            'package_name': self.package_name,
+            'repo_url': self.repo_url,
+            'test_mode': self.test_mode,
+            'version': self.version if self.version else 'latest',
+            'generate_graph': self.generate_graph,
+            'output_file': f"{self.output_file}.png",
+            'max_depth': self.max_depth if self.max_depth else 'unlimited',
+            'ascii_tree': self.ascii_tree,
+            'filter_substring': self.filter_substring if self.filter_substring else 'none'
         }
-
+    
     def is_test_mode(self) -> bool:
+        """Проверка активации тестового режима"""
+        
         return self.test_mode
 
 
 def parse_arguments() -> Config:
-    """Парсинг аргументов командной строки"""
-
+    """Парсинг аргументов командной строки и создание объекта класса Config"""
+    
     parser = argparse.ArgumentParser(
-        description="Визуализация графа зависимостей (вариант 2, этап 1)"
+        description='Инструмент визуализации графа зависимостей для Maven пакетов',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    # Обязательные параметры
+    parser.add_argument(
+        '--package', '-p',
+        type=str,
+        required=True,  # обязательный параметр
+        help='Имя анализируемого пакета (например: com.example:my-package)'
+    )
+    
+    parser.add_argument(
+        '--repo', '-r',
+        type=str,
+        required=True,  # обязательный параметр
+        help='URL репозитория Maven или путь к файлу тестового репозитория'
+    )
+    
+    # Опциональные параметры
+    parser.add_argument(
+        '--test-mode', '-t',
+        action='store_true',
+        help='Режим работы с тестовым репозиторием'
+    )
+    
+    parser.add_argument(
+        '--version', '-v',
+        type=str,
+        default=None,
+        help='Версия пакета (по умолчанию используется latest)'
+    )
+    
+    parser.add_argument(
+        '--output', '-o',
+        type=str,
+        default='dependency_graph',
+        help='Имя сгенерированного файла с изображением графа (по умолчанию: dependency_graph.png)'
+    )
+    
+    parser.add_argument(
+        '--max-depth', '-d',
+        type=int,
+        default=None,
+        help='Максимальная глубина анализа зависимостей'
+    )
+    
+    parser.add_argument(
+        '--ascii-tree', '-a',
+        action='store_true',
+        help='Вывести зависимости в формате ASCII-дерева'
+    )
+    
+    parser.add_argument(
+        '--filter', '-f',
+        type=str,
+        default=None,
+        help='Подстрока для фильтрации пакетов (исключает пакеты, содержащие подстроку)'
+    )
+    
+    parser.add_argument(
+        '--graph', '-g',
+        action='store_true',
+        help='Сгенерировать граф зависимостей в формате PNG'
     )
 
-    parser.add_argument("-p", "--package", type=str, required=True,
-                        help="Имя анализируемого пакета")
-    parser.add_argument("-r", "--repo", type=str, required=True,
-                        help="URL репозитория или путь к файлу тестового репозитория")
-    parser.add_argument("-t", "--test-mode", action="store_true",
-                        help="Режим работы с тестовым репозиторием")
-    parser.add_argument("-v", "--version", type=str,
-                        help="Версия пакета")
-    parser.add_argument("-o", "--output", type=str, default="dependency_graph.png",
-                        help="Имя создаваемого PNG-файла с графом")
-    parser.add_argument("-d", "--max-depth", type=int,
-                        help="Максимальная глубина анализа зависимостей")
-    parser.add_argument("-a", "--ascii", action="store_true",
-                        help="Режим вывода зависимостей в виде ASCII-дерева")
-    parser.add_argument("-f", "--filter", type=str,
-                        help="Подстрока для фильтрации пакетов")
-
-    args = parser.parse_args()
-
-    cfg = Config()
-    cfg.package_name = args.package
-    cfg.repo_url = args.repo
-    cfg.test_mode = args.test_mode
-    cfg.version = args.version
-    cfg.output_file = args.output
-    cfg.max_depth = args.max_depth
-    cfg.ascii_mode = args.ascii
-    cfg.filter_substring = args.filter
-
-    cfg.validate()
-    return cfg
+    
+    try:
+        args = parser.parse_args()
+        
+        config = Config()
+        config.package_name = args.package
+        config.repo_url = args.repo
+        config.test_mode = args.test_mode
+        config.version = args.version
+        config.output_file = args.output
+        config.max_depth = args.max_depth
+        config.ascii_tree = args.ascii_tree
+        config.filter_substring = args.filter
+        config.generate_graph = args.graph
+        
+        # Валидация конфигурации
+        config.validate()
+        
+        return config
+        
+    except argparse.ArgumentError as e:
+        print(f"Ошибка в аргументах командной строки: {e}")
+        parser.print_help()
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Ошибка валидации конфигурации: {e}")
+        sys.exit(1)
 
 
-def print_config(config: Config):
-    """Печать конфигурации в формате ключ-значение"""
-
-    print("\nТекущая конфигурация:")
-    print("------------------------------")
-
-    for key, value in config.to_dict().items():
+def print_config(config: Config) -> None:
+    """Вывод конфигурации (в формате ключ: значение)"""
+    
+    print("Текущая конфигурация:")
+    print("-" * 30)
+    
+    config_dict = config.to_dict()
+    for key, value in config_dict.items():
         print(f"{key}: {value}")
-
-    print("------------------------------")
+    
+    print("-" * 30)

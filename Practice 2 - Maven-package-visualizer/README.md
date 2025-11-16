@@ -81,9 +81,10 @@ package_name: org.apache.commons:commons-lang3
 repo_url: https://repo.maven.apache.org/maven2/
 test_mode: False
 version: 3.0
+generate_graph: False
 output_file: dependency_graph.png
-ascii_mode: False
 max_depth: unlimited
+ascii_tree: False
 filter_substring: none
 ------------------------------
 
@@ -99,7 +100,7 @@ org.easymock:easymock:2.5.2:
   - junit:junit:4.7
 ------------------------------
 
-Этап 2 завершён.
+Этап 3 завершён.
 ```
 \
 **Тест 2: обработка ошибок**
@@ -110,4 +111,54 @@ python cli.py --package "" --repo https://repo.maven.apache.org/maven2/
 **Вывод**
 ```bash
 Ошибка: Имя пакета обязательно для указания
+```
+\
+**Тест 3: тестовый режим**
+```bash
+python cli.py -p A -r test.txt -t
+```
+
+**Вывод**
+```bash
+Текущая конфигурация:
+------------------------------
+package_name: A
+repo_url: test.txt
+test_mode: True
+version: latest
+generate_graph: False
+output_file: dependency_graph.png
+max_depth: unlimited
+ascii_tree: False
+filter_substring: none
+------------------------------
+
+Работа в режиме test-mode
+
+Полученные зависимости:
+------------------------------
+A:latest:
+  - B:B:1.0.0
+  - C:C:1.0.0
+B:B:1.0.0:
+  - D:D:1.0.0
+  - E:E:1.0.0
+D:D:1.0.0:
+  - H:H:1.0.0
+H:H:1.0.0:
+  - A:A:1.0.0
+A:A:1.0.0:
+  - B:B:1.0.0
+  - C:C:1.0.0
+C:C:1.0.0:
+  - F:F:1.0.0
+  - G:G:1.0.0
+F:F:1.0.0:
+  - B:B:1.0.0
+  - G:G:1.0.0
+G:G:1.0.0:
+E:E:1.0.0:
+------------------------------
+
+Этап 3 завершён.
 ```
