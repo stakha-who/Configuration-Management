@@ -6,6 +6,10 @@ from maven_repository import MavenRepository
 from test_repository import TestRepository
 import graphviz
 
+graphviz_path = r"C:\Program Files\Graphviz\bin"
+if graphviz_path not in os.environ["PATH"]:
+    os.environ["PATH"] += os.pathsep + graphviz_path
+
 
 def make_node_id(group: str, artifact: str, version: Optional[str]) -> str:
     v = version if version else "unknown"
